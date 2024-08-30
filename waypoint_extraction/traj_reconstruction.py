@@ -2,9 +2,9 @@ import numpy as np
 import wandb
 from scipy.spatial.transform import Rotation
 
-from utils import put_text, remove_object
+from awe_utils import put_text, remove_object
 
-import robosuite.utils.transform_utils as T
+import awe_utils.transform_utils as T
 
 
 def linear_interpolation(p1, p2, t):
@@ -16,8 +16,13 @@ def point_line_distance(point, line_start, line_end):
     """Compute the shortest distance between a 3D point and a line segment defined by two 3D points"""
     line_vector = line_end - line_start
     point_vector = point - line_start
+    if np.sum(line_vector) == 0:
+        return 0
     # t represents the position of the orthogonal projection of the given point onto the infinite line defined by the segment
     t = np.dot(point_vector, line_vector) / np.dot(line_vector, line_vector)
+        # import math
+        # if math.isnan(t):
+            # import pudb; pudb.set_trace()
     t = np.clip(t, 0, 1)
     projection = linear_interpolation(line_start, line_end, t)
     return np.linalg.norm(point - projection)

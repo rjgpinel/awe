@@ -19,17 +19,21 @@ def greedy_waypoint_selection(
     remove_obj=None,
     geometry=True,
     pos_only=False,
+    predefined_waypoints=None,
 ):
+    if predefined_waypoints is None:
     # make the last frame a waypoint
-    waypoints = [len(actions) - 1]
+        waypoints = [0, len(actions) - 1]
 
-    # make the frames of gripper open/close waypoints
-    if not pos_only:
-        for i in range(len(actions) - 1):
-            if actions[i, -1] != actions[i + 1, -1]:
-                waypoints.append(i)
-                waypoints.append(i + 1)
-        waypoints.sort()
+        # make the frames of gripper open/close waypoints
+        if not pos_only:
+            for i in range(len(actions) - 1):
+                if actions[i, -1] != actions[i + 1, -1]:
+                    waypoints.append(i)
+                    waypoints.append(i + 1)
+            waypoints.sort()
+    else:
+        waypoints = predefined_waypoints
 
     # reconstruct the trajectory, and record the reconstruction error for each state
     for i in range(len(actions)):
@@ -84,7 +88,7 @@ def heuristic_waypoint_selection(
     pos_only=False,
 ):
     # make the last frame a waypoint
-    waypoints = [len(actions) - 1]
+    waypoints = [0, len(actions) - 1]
 
     # make the frames of gripper open/close waypoints
     for i in range(len(actions) - 1):
@@ -163,6 +167,7 @@ def dp_waypoint_selection(
     initial_states=None,
     remove_obj=None,
     pos_only=False,
+    predefined_waypoints=None,
 ):
     if actions is None:
         actions = copy.deepcopy(gt_states)
@@ -171,16 +176,19 @@ def dp_waypoint_selection(
         
     num_frames = len(actions)
 
-    # make the last frame a waypoint
-    initial_waypoints = [num_frames - 1]
+    if predefined_waypoints is None:
+        # make the last frame a waypoint
+        initial_waypoints = [0, len(actions) - 1]
 
-    # make the frames of gripper open/close waypoints
-    if not pos_only:
-        for i in range(num_frames - 1):
-            if actions[i, -1] != actions[i + 1, -1]:
-                initial_waypoints.append(i)
-                # initial_waypoints.append(i + 1)
-        initial_waypoints.sort()
+        # make the frames of gripper open/close waypoints
+        if not pos_only:
+            for i in range(len(actions) - 1):
+                if actions[i, -1] != actions[i + 1, -1]:
+                    initial_waypoints.append(i)
+                    initial_waypoints.append(i + 1)
+            initial_waypoints.sort()
+    else:
+        initial_waypoints = predefined_waypoints
 
     # Memoization table to store the waypoint sets for subproblems
     memo = {}
